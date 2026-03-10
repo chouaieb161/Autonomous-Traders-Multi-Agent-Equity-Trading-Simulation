@@ -1,4 +1,4 @@
-# Autonomous Traders (MCP + Azure OpenAI + SerpAPI(you can use also Brave API)
+# Autonomous Traders (MCP + Azure OpenAI + SerpAPI(you can also use Brave API)
 
 This repository is an **autonomous multi-agent equity trading simulation** built with the **OpenAI Agents SDK** and the **Model Context Protocol (MCP)**.
 
