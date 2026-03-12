@@ -27,7 +27,7 @@ class Trader:
         self.account = Account.get(self.name)
 
     def get_title(self) -> str:
-        return f"<div style='text-align: center;font-size:34px;'>{self.name}<span style='color:#ccc;font-size:24px;'> ({self.model_name}) - {self.lastname}</span></div>"
+        return f"<div style='text-align: center;font-size:34px;'>{self.name}<span style='color:#ccc;font-size:24px;'> · {self.model_name} · {self.lastname}</span></div>"
 
     def get_strategy(self) -> str:
         return self.account.get_strategy()

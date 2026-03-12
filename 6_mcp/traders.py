@@ -23,9 +23,9 @@ azure_openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
 azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 azure_openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-12-01-preview")
 
-# Other API keys
+# DeepSeek, Gemini, Grok API keys (for multi-model trading)
 deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
-google_api_key = os.getenv("GOOGLE_API_KEY")
+google_api_key = os.getenv("GOOGLE_API_KEY")  # used for Gemini
 grok_api_key = os.getenv("GROK_API_KEY")
 openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
 
@@ -52,25 +52,36 @@ gemini_client = AsyncOpenAI(base_url=GEMINI_BASE_URL, api_key=google_api_key) if
 
 
 def get_model(model_name: str):
-    # Use Azure OpenAI for gpt-4.1-mini and other Azure models
+    """Return the right OpenAIChatCompletionsModel for the given model name.
+    Supports: Azure OpenAI (gpt-4*), DeepSeek, Gemini (GOOGLE_API_KEY), Grok, OpenRouter.
+    """
+    # Azure OpenAI
     if model_name == "gpt-4.1-mini" or (azure_openai_client and "gpt-4" in model_name):
         if azure_openai_client:
             return OpenAIChatCompletionsModel(model=model_name, openai_client=azure_openai_client)
-        else:
-            raise ValueError(f"Azure OpenAI client not configured. Please set AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT")
-    elif "/" in model_name and openrouter_client:
+        raise ValueError("Azure OpenAI not configured. Set AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT")
+    # DeepSeek (DEEPSEEK_API_KEY)
+    if "deepseek" in model_name.lower():
+        if deepseek_client:
+            return OpenAIChatCompletionsModel(model=model_name, openai_client=deepseek_client)
+        raise ValueError("DeepSeek not configured. Set DEEPSEEK_API_KEY")
+    # Grok (GROK_API_KEY)
+    if "grok" in model_name.lower():
+        if grok_client:
+            return OpenAIChatCompletionsModel(model=model_name, openai_client=grok_client)
+        raise ValueError("Grok not configured. Set GROK_API_KEY")
+    # Gemini (GOOGLE_API_KEY)
+    if "gemini" in model_name.lower():
+        if gemini_client:
+            return OpenAIChatCompletionsModel(model=model_name, openai_client=gemini_client)
+        raise ValueError("Gemini not configured. Set GOOGLE_API_KEY")
+    # OpenRouter (model names with /)
+    if "/" in model_name and openrouter_client:
         return OpenAIChatCompletionsModel(model=model_name, openai_client=openrouter_client)
-    elif "deepseek" in model_name and deepseek_client:
-        return OpenAIChatCompletionsModel(model=model_name, openai_client=deepseek_client)
-    elif "grok" in model_name and grok_client:
-        return OpenAIChatCompletionsModel(model=model_name, openai_client=grok_client)
-    elif "gemini" in model_name and gemini_client:
-        return OpenAIChatCompletionsModel(model=model_name, openai_client=gemini_client)
-    else:
-        # Default: try Azure OpenAI if available
-        if azure_openai_client:
-            return OpenAIChatCompletionsModel(model=model_name, openai_client=azure_openai_client)
-        return model_name
+    # Fallback: Azure if available
+    if azure_openai_client:
+        return OpenAIChatCompletionsModel(model=model_name, openai_client=azure_openai_client)
+    raise ValueError(f"No client configured for model: {model_name}. Set the matching API key.")
 
 
 async def get_researcher(mcp_servers, model_name) -> Agent:

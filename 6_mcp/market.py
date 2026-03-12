@@ -1,4 +1,4 @@
-from polygon import RESTClient
+from massive import RESTClient  # Massive (formerly Polygon.io)
 from dotenv import load_dotenv
 import os
 from datetime import datetime
@@ -9,22 +9,24 @@ from datetime import timezone
 
 load_dotenv(override=True)
 
-polygon_api_key = os.getenv("POLYGON_API_KEY")
-polygon_plan = os.getenv("POLYGON_PLAN")
+# Massive / Polygon API configuration
+# Prefer MASSIVE_API_KEY / MASSIVE_PLAN if set, fall back to legacy POLYGON_* names.
+massive_api_key = os.getenv("MASSIVE_API_KEY") or os.getenv("POLYGON_API_KEY")
+massive_plan = os.getenv("MASSIVE_PLAN") or os.getenv("POLYGON_PLAN")
 
-is_paid_polygon = polygon_plan == "paid"
-is_realtime_polygon = polygon_plan == "realtime"
+is_paid_polygon = massive_plan == "paid"
+is_realtime_polygon = massive_plan == "realtime"
 
 
 def is_market_open() -> bool:
-    client = RESTClient(polygon_api_key)
+    client = RESTClient(api_key=massive_api_key)
     market_status = client.get_market_status()
     return market_status.market == "open"
 
 
 def get_all_share_prices_polygon_eod() -> dict[str, float]:
     """With much thanks to student Reema R. for fixing the timezone issue with this!"""
-    client = RESTClient(polygon_api_key)
+    client = RESTClient(api_key=massive_api_key)
 
     probe = client.get_previous_close_agg("SPY")[0]
     last_close = datetime.fromtimestamp(probe.timestamp / 1000, tz=timezone.utc).date()
@@ -49,7 +51,7 @@ def get_share_price_polygon_eod(symbol) -> float:
 
 
 def get_share_price_polygon_min(symbol) -> float:
-    client = RESTClient(polygon_api_key)
+    client = RESTClient(api_key=massive_api_key)
     result = client.get_snapshot_ticker("stocks", symbol)
     return result.min.close or result.prev_day.close
 
@@ -62,9 +64,9 @@ def get_share_price_polygon(symbol) -> float:
 
 
 def get_share_price(symbol) -> float:
-    if polygon_api_key:
+    if massive_api_key:
         try:
             return get_share_price_polygon(symbol)
         except Exception as e:
-            print(f"Was not able to use the polygon API due to {e}; using a random number")
+            print(f"Was not able to use the Massive/Polygon API due to {e}; using a random number")
     return float(random.randint(1, 100))

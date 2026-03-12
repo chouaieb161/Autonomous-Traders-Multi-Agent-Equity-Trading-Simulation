@@ -14,19 +14,20 @@ RUN_EVERY_N_MINUTES = int(os.getenv("RUN_EVERY_N_MINUTES", "60"))
 RUN_EVEN_WHEN_MARKET_IS_CLOSED = (
     os.getenv("RUN_EVEN_WHEN_MARKET_IS_CLOSED", "true").strip().lower() == "true"
 )
-USE_MANY_MODELS = os.getenv("USE_MANY_MODELS", "false").strip().lower() == "true"
+USE_MANY_MODELS = os.getenv("USE_MANY_MODELS", "true").strip().lower() == "true"
 
 names = ["Warren", "George", "Ray", "Cathie"]
 lastnames = ["Patience", "Bold", "Systematic", "Crypto"]
 
+# Model IDs: Azure, DeepSeek (DEEPSEEK_API_KEY), Gemini (GOOGLE_API_KEY), Grok (GROK_API_KEY)
 if USE_MANY_MODELS:
     model_names = [
-        "gpt-4.1-mini",
-        "deepseek-chat",
-        "gemini-2.5-flash-preview-04-17",
-        "grok-3-mini-beta",
+        "gpt-4.1-mini",           # Azure OpenAI
+        "deepseek-chat",          # DeepSeek API
+        "gemini-1.5-flash",      # Google Gemini (GOOGLE_API_KEY)
+        "grok-2-mini",            # x.ai Grok
     ]
-    short_model_names = ["GPT 4.1 Mini", "DeepSeek V3", "Gemini 2.5 Flash", "Grok 3 Mini"]
+    short_model_names = ["Azure GPT 4.1 Mini", "DeepSeek", "Gemini 1.5 Flash", "Grok 2 Mini"]
 else:
     model_names = ["gpt-4.1-mini"] * 4
     short_model_names = ["GPT 4.1 Mini"] * 4
